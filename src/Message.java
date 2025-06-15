@@ -5,6 +5,8 @@ public class Message implements Serializable {
         TASK_ASSIGNMENT,
         TASK_DONE,
         WORD_PAIR,
+        REQ_ACK,
+        ACK,
         START_REDUCE,
         LOCAL_MIN_MAX,
         START_REDISTRIBUTE,

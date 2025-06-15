@@ -9,6 +9,7 @@ public class WorkerNode {
     private final Map<String, Integer> localCounts = new ConcurrentHashMap<>();
     private final List<WordPair> receivedPairs = Collections.synchronizedList(new ArrayList<>());
     private final List<WordPair> redistributedPairs = Collections.synchronizedList(new ArrayList<>());
+    private CountDownLatch ACK_Latch;
 
     public WorkerNode(int id) {
         this.id = id;
@@ -28,6 +29,8 @@ public class WorkerNode {
         switch (msg.type) {
             case TASK_ASSIGNMENT -> handleTask(msg.payload);
             case WORD_PAIR, REDISTRIBUTION -> onReceivingPair(msg);
+            case REQ_ACK -> replyACK(msg);
+            case ACK -> rcvACK();
             case START_REDUCE -> performReduction();
             case START_REDISTRIBUTE -> redistribute(msg.payload);
             case SORT_AND_SEND_RESULT -> sendFinalResult();
@@ -50,7 +53,33 @@ public class WorkerNode {
                 }
             }
         }
+        askAndWait4ACK();
         commHandler.send(masterNode, new Message(Message.Type.TASK_DONE, String.valueOf(id), id));
+    }
+
+    private void askAndWait4ACK(){
+        for(NodeInfo peer : peers) {
+            if(peer.id != this.id)
+                commHandler.send(peer, new Message(Message.Type.REQ_ACK, "", id));
+        }
+        ACK_Latch = new CountDownLatch(peers.size()-1);
+        Config.consoleOutput(Config.outType.INFO, "Worker " + id + " Finished shuffling, waiting for peers ACKs.");
+        try {
+            ACK_Latch.await(); // Waits until all tasks are marked done
+            Config.consoleOutput(Config.outType.INFO, "Worker " + id + " has gathered all ACKs.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for task completion");
+        }
+    }
+
+    private void replyACK(Message msg) {
+        int senderId = msg.senderId;
+        commHandler.send(peers.get(senderId), new Message(Message.Type.ACK, "", id));
+    }
+
+    private void rcvACK() {
+        ACK_Latch.countDown();
     }
 
     private void sendToPeer(int peerId, WordPair wp) {
@@ -104,7 +133,7 @@ public class WorkerNode {
                     word + ":" + count, id);
             commHandler.send(peers.get(destWorker), m);
         }
-
+        askAndWait4ACK();
         commHandler.send(masterNode, new Message(Message.Type.REDISTRIBUTION_DONE, "", id));
     }
 
