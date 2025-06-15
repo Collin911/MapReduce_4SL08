@@ -67,7 +67,7 @@ public class MasterNode {
             }
             case REDISTRIBUTION_DONE -> {
                 redisDoneCount++;
-                Config.consoleOutput(Config.outType.INFO, "Redistribution done from " + senderHost);
+                Config.consoleOutput(Config.outType.INFO, "Redistribution done from worker " + msg.senderId);
             }
             case FINAL_RESULT -> {
                 int id = Integer.parseInt(msg.payload.split(":")[0]);
@@ -96,12 +96,30 @@ public class MasterNode {
     private void redistributeByCounts() {
         int globalMin = Collections.min(localMins);
         int globalMax = Collections.max(localMaxs);
+        List<Integer> thresholds = new ArrayList<>();
+
+        // Linear distribution interval
+        /*
         int range = globalMax - globalMin;
         int interval = range / workers.size();
-        List<Integer> thresholds = new ArrayList<>();
+
         for (int i = 1; i < workers.size(); i++) {
             thresholds.add(globalMin + i * interval);
         }
+        */
+
+        // Logarithmic distribution interval
+        double minLog = Math.log(globalMin == 0 ? 1 : globalMin);
+        double maxLog = Math.log(globalMax);
+        double alpha = 10.0;
+
+        for (int i = 1; i < workers.size(); i++) {
+            double ratio = Math.pow((double) i / workers.size(), alpha);  // apply steepness
+            double logThreshold = minLog + ratio * (maxLog - minLog);
+            int threshold = (int) Math.round(Math.exp(logThreshold));
+            thresholds.add(threshold);
+        }
+
         String payload = String.join(",", thresholds.stream().map(Object::toString).toArray(String[]::new));
         broadcast(new Message(Message.Type.START_REDISTRIBUTE, payload, -1));
     }
@@ -120,7 +138,7 @@ public class MasterNode {
         Collections.sort(ids);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("final_result.txt"))) {
             for (int id : ids) {
-                writer.write(id + "\n");
+                writer.write("Node " + id + "\n");
                 writer.write(finalResults.get(id));
                 writer.newLine();
             }
