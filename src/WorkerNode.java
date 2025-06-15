@@ -4,8 +4,6 @@ import java.util.concurrent.*;
 public class WorkerNode {
     private final int id;
     private final NodeInfo masterNode;
-    private final String masterHost;
-    private final int masterPort;
     private final List<NodeInfo> peers;
     private final CommunicationHandler commHandler;
     private final Map<String, Integer> localCounts = new ConcurrentHashMap<>();
@@ -14,11 +12,11 @@ public class WorkerNode {
 
     public WorkerNode(int id) {
         this.id = id;
-        this.masterHost = Config.getMasterHost();
-        this.masterPort = Config.MASTER_PORT;
+        this.masterNode = Config.MASTER;
         this.peers = Config.loadWorkers();
-        List<NodeInfo> allOtherNodes = peers.add();
-        this.commHandler = new CommunicationHandler(peers.get(id).port, this::handleMessage);
+        List<NodeInfo> allOtherNodes = new ArrayList<>(peers);
+        allOtherNodes.add(masterNode);
+        this.commHandler = new CommunicationHandler(peers.get(id).port, this::handleMessage, allOtherNodes);
     }
 
     public void start() {
@@ -52,7 +50,7 @@ public class WorkerNode {
                 }
             }
         }
-        commHandler.send(masterHost, masterPort, new Message(Message.Type.TASK_DONE, String.valueOf(id), id));
+        commHandler.send(masterNode, new Message(Message.Type.TASK_DONE, String.valueOf(id), id));
     }
 
     private void sendToPeer(int peerId, WordPair wp) {
@@ -79,7 +77,7 @@ public class WorkerNode {
         }
         int localMin = localCounts.values().stream().min(Integer::compare).orElse(0);
         int localMax = localCounts.values().stream().max(Integer::compare).orElse(0);
-        commHandler.send(masterHost, masterPort,
+        commHandler.send(masterNode,
                 new Message(Message.Type.LOCAL_MIN_MAX, localMin + "," + localMax, id));
     }
 
@@ -102,7 +100,7 @@ public class WorkerNode {
             commHandler.send(peers.get(destWorker), m);
         }
 
-        commHandler.send(masterHost, masterPort, new Message(Message.Type.REDISTRIBUTION_DONE, "", id));
+        commHandler.send(masterNode, new Message(Message.Type.REDISTRIBUTION_DONE, "", id));
     }
 
     private void sendFinalResult() {
@@ -123,7 +121,7 @@ public class WorkerNode {
             result.append(wp.word).append(": ").append(wp.count).append("\n");
         }
 
-        commHandler.send(masterHost, masterPort,
+        commHandler.send(masterNode,
                 new Message(Message.Type.FINAL_RESULT, id + ":" + result.toString(), id));
         debug("Worker " + id + " sent final result.");
     }

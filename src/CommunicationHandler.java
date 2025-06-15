@@ -54,16 +54,4 @@ public class CommunicationHandler {
             e.printStackTrace();
         }
     }
-
-    // Send to a given host:port (e.g., to master)
-    public void send(String dstHost, int dstPort, Message msg) {
-        try (Socket socket = new Socket(dstHost, dstPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-            out.writeObject(msg);
-            out.flush();
-        } catch (IOException e) {
-            System.err.println("Failed to send to " + dstHost + ":" + dstPort);
-            e.printStackTrace();
-        }
-    }
 }
