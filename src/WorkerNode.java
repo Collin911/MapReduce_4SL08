@@ -21,7 +21,7 @@ public class WorkerNode {
 
     public void start() {
         commHandler.start();
-        debug("Worker " + id + " started.");
+        Config.consoleOutput(Config.outType.WARN, "Worker " + id + " started.");
     }
 
     private void handleMessage(Message msg, String senderHost) {
@@ -35,7 +35,7 @@ public class WorkerNode {
     }
 
     private void handleTask(String text) {
-        debug("Worker " + id + " received a task.");
+        Config.consoleOutput(Config.outType.INFO, "Worker " + id + " received a task.");
         String[] words = text.trim().split("\\s+");
         for (String word : words) {
             String cleaned = word.toLowerCase().replaceAll("\\W", "");
@@ -72,6 +72,11 @@ public class WorkerNode {
     }
 
     private void performReduction() {
+        try{
+            Thread.sleep(500); // wait for the on-air messages
+        } catch (InterruptedException e) {
+            Config.consoleOutput(Config.outType.WARN, "Worker " + id + " interrupted.");
+        }
         for (WordPair wp : receivedPairs) {
             localCounts.merge(wp.word, wp.count, Integer::sum);
         }
@@ -82,7 +87,7 @@ public class WorkerNode {
     }
 
     private void redistribute(String payload) {
-        debug("Worker " + id + " redistributing...");
+        Config.consoleOutput(Config.outType.DEBUG, "Worker " + id + " redistributing...");
         String[] split = payload.split(",");
         List<Integer> thresholds = new ArrayList<>();
         for (String s : split)
@@ -123,14 +128,14 @@ public class WorkerNode {
 
         commHandler.send(masterNode,
                 new Message(Message.Type.FINAL_RESULT, id + ":" + result.toString(), id));
-        debug("Worker " + id + " sent final result.");
+        Config.consoleOutput(Config.outType.INFO, "Worker " + id + " sent final result.");
     }
 
-    private void debug(String msg) {
+    /*private void debug(String msg) {
         if (Config.DEBUG) {
             System.out.println("[Worker " + id + "] " + msg);
         }
-    }
+    }*/
 
     public static void main(String[] args) {
         if (args.length != 1) {

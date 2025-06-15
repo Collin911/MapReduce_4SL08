@@ -7,7 +7,6 @@ import java.util.concurrent.*;
 public class MasterNode {
     private final String[] files;
     private final List<NodeInfo> workers;
-    private final Map<Integer, Boolean> taskStatus;
     private final Map<Integer, String> finalResults;
     private final CommunicationHandler commHandler;
     private final Set<String> minMaxReports;
@@ -20,7 +19,6 @@ public class MasterNode {
     public MasterNode(String[] files) {
         this.files = files;
         this.workers = Config.loadWorkers();
-        this.taskStatus = new ConcurrentHashMap<>();
         this.finalResults = new ConcurrentHashMap<>();
         this.commHandler = new CommunicationHandler(Config.MASTER_PORT, this::handleMessage, workers);
         this.minMaxReports = ConcurrentHashMap.newKeySet();
@@ -30,10 +28,10 @@ public class MasterNode {
 
     public void start() throws IOException {
         commHandler.start();
-        debug("Master started. Assigning tasks...");
+        Config.consoleOutput(Config.outType.INFO, "Master started. Assigning tasks...");
         assignFilesToWorkers();
         waitForTaskCompletion();
-        debug("All tasks completed. Initiating reduction...");
+        Config.consoleOutput(Config.outType.INFO, "All tasks completed. Initiating reduction...");
         broadcast(new Message(Message.Type.START_REDUCE, "", -1));
         waitForMinMaxReports();
         redistributeByCounts();
@@ -57,7 +55,7 @@ public class MasterNode {
             case TASK_DONE -> {
                 synchronized (lock) {
                     taskLatch.countDown();
-                    debug("One task marked done. Remaining: " + taskLatch.getCount());
+                    Config.consoleOutput(Config.outType.INFO, "One task marked done. Remaining: " + taskLatch.getCount());
                 }
             }
             case LOCAL_MIN_MAX -> {
@@ -65,17 +63,17 @@ public class MasterNode {
                 localMins.add(Integer.parseInt(parts[0]));
                 localMaxs.add(Integer.parseInt(parts[1]));
                 minMaxReports.add(String.valueOf(msg.senderId));
-                debug("Received min/max from worker " + msg.senderId);
+                Config.consoleOutput(Config.outType.INFO, "Received min/max from worker " + msg.senderId);
             }
             case REDISTRIBUTION_DONE -> {
                 redisDoneCount++;
-                debug("Redistribution done from " + senderHost);
+                Config.consoleOutput(Config.outType.INFO, "Redistribution done from " + senderHost);
             }
             case FINAL_RESULT -> {
                 int id = Integer.parseInt(msg.payload.split(":")[0]);
                 String data = msg.payload.substring(msg.payload.indexOf(":") + 1);
                 finalResults.put(id, data);
-                debug("Received final result from worker " + id);
+                Config.consoleOutput(Config.outType.INFO, "Received final result from worker " + id);
             }
         }
     }
@@ -126,7 +124,7 @@ public class MasterNode {
                 writer.write(finalResults.get(id));
                 writer.newLine();
             }
-            debug("Final result written to final_result.txt");
+            Config.consoleOutput(Config.outType.INFO, "Final result written to final_result.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -145,9 +143,9 @@ public class MasterNode {
         }
     }
 
-    private void debug(String msg) {
+    /*private void debug(String msg) {
         if (Config.DEBUG) {
             System.out.println("[DEBUG] " + msg);
         }
-    }
+    }*/
 }
