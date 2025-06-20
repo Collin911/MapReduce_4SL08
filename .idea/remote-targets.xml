@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="sxia-24@tp-1d22-01:22" type="ssh/sftp" uuid="dd25833f-a10b-4f4a-be45-1fd3b2ee6b18">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-01:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-02:23" type="ssh/sftp" uuid="d01e165b-8428-461d-b83c-6711cc7b6c94">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-02:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-03:22" type="ssh/sftp" uuid="1d8b34b0-2862-441e-aa39-acd9d5be9cc2">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-03:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>
