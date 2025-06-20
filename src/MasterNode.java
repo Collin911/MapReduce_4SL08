@@ -35,13 +35,13 @@ public class MasterNode {
         assignFilesToWorkers();
         waitForTaskCompletion();
         Config.consoleOutput(Config.outType.INFO, "All tasks completed. Initiating reduction...");
-        broadcast(new Message(Message.Type.START_REDUCE, "", -1));
+        startReduce();
         waitForMinMaxReports();
         Config.consoleOutput(Config.outType.INFO, "All min/max received. Initiating redistribution...");
         redistributeByCounts();
         waitForRedistributionDone();
         Config.consoleOutput(Config.outType.INFO, "All redistribution done. Requesting for final results...");
-        broadcast(new Message(Message.Type.SORT_AND_SEND_RESULT, "", -1));
+        requestFinalResults();
         gatherFinalResults();
     }
 
@@ -55,6 +55,11 @@ public class MasterNode {
         }
     }
 
+    private void startReduce(){
+        taskLatch = new CountDownLatch(workers.size());
+        broadcast(new Message(Message.Type.START_REDUCE, "", -1));
+    }
+
     private void handleMessage(Message msg, String senderHost) {
         switch (msg.type) {
             case TASK_DONE -> {
@@ -64,21 +69,29 @@ public class MasterNode {
                 }
             }
             case LOCAL_MIN_MAX -> {
+                synchronized (lock) {
+                    taskLatch.countDown();
+                    Config.consoleOutput(Config.outType.INFO, "Received min/max from worker " + msg.senderId);
+                }
                 String[] parts = msg.payload.split(",");
                 localMins.add(Integer.parseInt(parts[0]));
                 localMaxs.add(Integer.parseInt(parts[1]));
                 minMaxReports.add(String.valueOf(msg.senderId));
-                Config.consoleOutput(Config.outType.INFO, "Received min/max from worker " + msg.senderId);
             }
             case REDISTRIBUTION_DONE -> {
-                redisDoneCount++;
-                Config.consoleOutput(Config.outType.INFO, "Redistribution done from worker " + msg.senderId);
+                synchronized (lock) {
+                    taskLatch.countDown();
+                    Config.consoleOutput(Config.outType.INFO, "Redistribution done from worker " + msg.senderId);
+                }
             }
             case FINAL_RESULT -> {
                 int id = Integer.parseInt(msg.payload.split(":")[0]);
                 String data = msg.payload.substring(msg.payload.indexOf(":") + 1);
+                synchronized (lock) {
+                    taskLatch.countDown();
+                    Config.consoleOutput(Config.outType.INFO, "Received final result from worker " + id);
+                }
                 finalResults.put(id, data);
-                Config.consoleOutput(Config.outType.INFO, "Received final result from worker " + id);
             }
         }
     }
@@ -93,10 +106,12 @@ public class MasterNode {
     }
 
     private void waitForMinMaxReports() {
-        while (minMaxReports.size() < workers.size()) {
-            sleep(100);
+        try {
+            taskLatch.await(); // Waits until all tasks are marked done
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for task completion");
         }
-
     }
 
     private void redistributeByCounts() {
@@ -127,18 +142,30 @@ public class MasterNode {
         }
 
         String payload = String.join(",", thresholds.stream().map(Object::toString).toArray(String[]::new));
+        taskLatch = new CountDownLatch(workers.size());
         broadcast(new Message(Message.Type.START_REDISTRIBUTE, payload, -1));
     }
 
     private void waitForRedistributionDone() {
-        while (redisDoneCount < workers.size()) {
-            sleep(100);
+        try {
+            taskLatch.await(); // Waits until all tasks are marked done
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for task completion");
         }
     }
 
+    private void requestFinalResults(){
+        taskLatch = new CountDownLatch(workers.size());
+        broadcast(new Message(Message.Type.SORT_AND_SEND_RESULT, "", -1));
+    }
+
     private void gatherFinalResults() {
-        while (finalResults.size() < workers.size()) {
-            sleep(100);
+        try {
+            taskLatch.await(); // Waits until all tasks are marked done
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for task completion");
         }
         List<Integer> ids = new ArrayList<>(finalResults.keySet());
         Collections.sort(ids);
