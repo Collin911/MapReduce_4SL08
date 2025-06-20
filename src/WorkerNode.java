@@ -10,6 +10,7 @@ public class WorkerNode {
     private final List<WordPair> receivedPairs = Collections.synchronizedList(new ArrayList<>());
     private final List<WordPair> redistributedPairs = Collections.synchronizedList(new ArrayList<>());
     private CountDownLatch ACK_Latch;
+    private final Object lock = new Object();
 
     public WorkerNode(int id) {
         this.id = id;
@@ -94,10 +95,14 @@ public class WorkerNode {
         String word = parts[0];
         int count = Integer.parseInt(parts[1]);
         if(msg.type == Message.Type.WORD_PAIR) {
-            receivedPairs.add(new WordPair(word, count));
+            synchronized (lock){
+                receivedPairs.add(new WordPair(word, count));
+            }
         }
         else if (msg.type == Message.Type.REDISTRIBUTION){
-            redistributedPairs.add(new WordPair(word, count));
+            synchronized (lock){
+                redistributedPairs.add(new WordPair(word, count));
+            }
         }
 
     }
@@ -140,9 +145,11 @@ public class WorkerNode {
     }
 
     private void sendFinalResult() {
-        redistributedPairs.sort(Comparator
-                .comparingInt((WordPair wp) -> wp.count)
-                .thenComparing(wp -> wp.word));
+        synchronized (lock) {
+            redistributedPairs.sort(Comparator
+                    .comparingInt((WordPair wp) -> wp.count)
+                    .thenComparing(wp -> wp.word));
+        }
         /*Map<String, Integer> reduced = new TreeMap<>();
         for (WordPair wp : redistributedPairs) {
             reduced.merge(wp.word, wp.count, Integer::sum);
