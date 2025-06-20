@@ -75,10 +75,12 @@ public class WorkerNode {
 
     private void replyACK(Message msg) {
         int senderId = msg.senderId;
+        Config.consoleOutput(Config.outType.DEBUG, "Worker " + id + " has send an ACK to " + senderId + ".");
         commHandler.send(peers.get(senderId), new Message(Message.Type.ACK, "", id));
     }
 
     private void rcvACK() {
+        Config.consoleOutput(Config.outType.DEBUG, "Worker " + id + " has received an ACK.");
         ACK_Latch.countDown();
     }
 

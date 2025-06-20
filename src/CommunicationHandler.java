@@ -8,9 +8,10 @@ import java.util.function.BiConsumer;
 public class CommunicationHandler {
     private final int port;
     private final BiConsumer<Message, String> onMessage;
-    private final List<NodeInfo> peers; // All known peers (workers + master, excluding self)
+    private final List<NodeInfo> peers;
     private final ExecutorService pool = Executors.newCachedThreadPool();
-    private final Map<String, ObjectOutputStream> outStreams = new ConcurrentHashMap<>();
+
+    private final Map<String, SenderThread> senders = new ConcurrentHashMap<>();
 
     public CommunicationHandler(int port, BiConsumer<Message, String> onMessage, List<NodeInfo> peers) {
         this.port = port;
@@ -18,46 +19,11 @@ public class CommunicationHandler {
         this.peers = peers;
     }
 
-    /*public void start() {
-        pool.submit(() -> {
-            try (ServerSocket serverSocket = new ServerSocket(port)) {
-                while (true) {
-                    Socket client = serverSocket.accept();
-                    pool.submit(() -> handle(client));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private void handle(Socket client) {
-        try (ObjectInputStream in = new ObjectInputStream(client.getInputStream())) {
-            Message msg = (Message) in.readObject();
-            String senderHost = client.getInetAddress().getHostAddress();
-            String senderPort = Integer.toString(client.getPort());
-            System.out.println("Received message: " + msg.type + " from " + senderHost + ":" + senderPort);
-            onMessage.accept(msg, senderHost);
-        } catch (Exception e) {
-            System.err.println("Error handling client at " + client.getInetAddress());
-            e.printStackTrace();
-        }
-    }
-
-    public void send(NodeInfo worker, Message msg) {
-        try (Socket socket = new Socket(worker.hostname, worker.port);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-            out.writeObject(msg);
-            out.flush(); // ✅ flush before closing
-        } catch (IOException e) {
-            System.err.println("Failed to send to " + worker.hostname + ":" + worker.port);
-            e.printStackTrace();
-        }
-    }*/
-
     public void start() {
-        startServerSocket();   // Accept inbound connections
-        connectToPeers();      // Establish outbound connections
+        startServerSocket();
+        for (NodeInfo peer : peers) {
+            connectToPeer(peer);
+        }
     }
 
     private void startServerSocket() {
@@ -79,8 +45,6 @@ public class CommunicationHandler {
             while (true) {
                 Message msg = (Message) in.readObject();
                 String sender = client.getInetAddress().getHostAddress();
-                String senderPort = Integer.toString(client.getPort());
-                Config.consoleOutput(Config.outType.DEBUG,"Received message: " + msg.type + " from " + sender + ":" + senderPort);
                 onMessage.accept(msg, sender);
             }
         } catch (Exception e) {
@@ -89,45 +53,73 @@ public class CommunicationHandler {
         }
     }
 
-    private void connectToPeers() {
-        for (NodeInfo peer : peers) {
-            pool.submit(() -> {
-                while (true) {
-                    try {
-                        Socket socket = new Socket(peer.hostname, peer.port);
-                        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                        outStreams.put(peer.hostname + ":" + peer.port, out);
+    private void connectToPeer(NodeInfo peer) {
+        pool.submit(() -> {
+            String key = peer.hostname + ":" + peer.port;
+            while (true) {
+                try {
+                    Socket socket = new Socket(peer.hostname, peer.port);
+                    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-                        // Optional: start a listener for server-to-client messages if bidirectional
-                        return;
-                    } catch (IOException e) {
-                        System.err.println("Retrying connection to " + peer.hostname + ":" + peer.port);
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignored) {}
-                    }
+                    SenderThread sender = new SenderThread(peer, out, key);
+                    senders.put(key, sender);
+                    pool.submit(sender);
+                    Config.consoleOutput(Config.outType.INFO, "Connected to " + key);
+                    return;
+                } catch (IOException e) {
+                    Config.consoleOutput(Config.outType.ERR, "Retrying connection to " + key);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {}
                 }
-            });
-        }
+            }
+        });
     }
 
     public void send(NodeInfo peer, Message msg) {
         String key = peer.hostname + ":" + peer.port;
-        ObjectOutputStream out = outStreams.get(key);
-        if (out != null) {
-            try {
-                synchronized (out) {
-                    Config.consoleOutput(Config.outType.DEBUG, msg.type + " sent to " + key);
-                    out.writeObject(msg);
-                    out.flush();
-                }
-            } catch (IOException e) {
-                Config.consoleOutput(Config.outType.ERR, "Send failed to " + key);
-                e.printStackTrace();
-            }
+        SenderThread sender = senders.get(key);
+        if (sender != null) {
+            sender.send(msg);
         } else {
-            Config.consoleOutput(Config.outType.ERR, "No connection to " + key);
+            Config.consoleOutput(Config.outType.ERR, "No sender for " + key);
         }
     }
 
+    private class SenderThread implements Runnable {
+        private final NodeInfo peer;
+        private final String peerKey;
+        private final BlockingQueue<Message> queue = new LinkedBlockingQueue<>();
+        private ObjectOutputStream out;
+
+        public SenderThread(NodeInfo peer, ObjectOutputStream out, String peerKey) {
+            this.peer = peer;
+            this.out = out;
+            this.peerKey = peerKey;
+        }
+
+        public void send(Message msg) {
+            queue.offer(msg);
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    Message msg = queue.take();
+                    synchronized (out) {
+                        out.writeObject(msg);
+                        out.flush();
+                    }
+                    Config.consoleOutput(Config.outType.DEBUG, msg.type + " sent to " + peerKey);
+                } catch (IOException | InterruptedException e) {
+                    Config.consoleOutput(Config.outType.ERR, "Connection lost to " + peerKey);
+                    e.printStackTrace();
+                    break;
+                }
+            }
+
+            // Retry connection
+            connectToPeer(peer);
+        }
+    }
 }

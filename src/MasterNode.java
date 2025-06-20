@@ -20,7 +20,7 @@ public class MasterNode {
         this.files = files;
         this.workers = Config.loadWorkers();
         this.finalResults = new ConcurrentHashMap<>();
-        this.commHandler = new CommunicationHandler(Config.MASTER_PORT, this::handleMessage, workers);
+        this.commHandler = new CommunicationHandler(Config.MASTER.port, this::handleMessage, workers);
         this.minMaxReports = ConcurrentHashMap.newKeySet();
         this.localMins = Collections.synchronizedList(new ArrayList<>());
         this.localMaxs = Collections.synchronizedList(new ArrayList<>());
@@ -34,8 +34,10 @@ public class MasterNode {
         Config.consoleOutput(Config.outType.INFO, "All tasks completed. Initiating reduction...");
         broadcast(new Message(Message.Type.START_REDUCE, "", -1));
         waitForMinMaxReports();
+        Config.consoleOutput(Config.outType.INFO, "All min/max received. Initiating redistribution...");
         redistributeByCounts();
         waitForRedistributionDone();
+        Config.consoleOutput(Config.outType.INFO, "All redistribution done. Requesting for final results...");
         broadcast(new Message(Message.Type.SORT_AND_SEND_RESULT, "", -1));
         gatherFinalResults();
     }
@@ -91,6 +93,7 @@ public class MasterNode {
         while (minMaxReports.size() < workers.size()) {
             sleep(100);
         }
+
     }
 
     private void redistributeByCounts() {
