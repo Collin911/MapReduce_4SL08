@@ -63,7 +63,7 @@ public class WorkerNode {
                 commHandler.send(peer, new Message(Message.Type.REQ_ACK, "", id));
         }
         ACK_Latch = new CountDownLatch(peers.size()-1);
-        Config.consoleOutput(Config.outType.INFO, "Worker " + id + " Finished shuffling, waiting for peers ACKs.");
+        Config.consoleOutput(Config.outType.INFO, "Worker " + id + " is waiting for peers ACKs.");
         try {
             ACK_Latch.await(); // Waits until all tasks are marked done
             Config.consoleOutput(Config.outType.INFO, "Worker " + id + " has gathered all ACKs.");

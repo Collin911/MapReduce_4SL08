@@ -15,6 +15,7 @@ public class MasterNode {
     private int redisDoneCount = 0;
     private CountDownLatch taskLatch;
     private final Object lock = new Object(); // for printing/debug sync
+    private final long startTime;
 
     public MasterNode(String[] files) {
         this.files = files;
@@ -24,6 +25,8 @@ public class MasterNode {
         this.minMaxReports = ConcurrentHashMap.newKeySet();
         this.localMins = Collections.synchronizedList(new ArrayList<>());
         this.localMaxs = Collections.synchronizedList(new ArrayList<>());
+        this.startTime = System.currentTimeMillis();
+
     }
 
     public void start() throws IOException {
@@ -139,6 +142,10 @@ public class MasterNode {
         }
         List<Integer> ids = new ArrayList<>(finalResults.keySet());
         Collections.sort(ids);
+        long endTime = System.currentTimeMillis();
+        long durationNano = endTime - startTime;
+        double durationSeconds = durationNano / 1000.0;
+        Config.consoleOutput(Config.outType.INFO, "Total running time: " + durationSeconds + "s.");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("final_result.txt"))) {
             for (int id : ids) {
                 writer.write("Node " + id + "\n");
