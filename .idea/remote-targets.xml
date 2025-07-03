@@ -41,6 +41,45 @@
           </config>
         </ContributedStateBase>
       </target>
+      <target name="sxia-24@tp-1d22-04:22" type="ssh/sftp" uuid="447a51f3-197f-4731-84f6-c393633196c5">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-04:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-05:22" type="ssh/sftp" uuid="d8d70ce8-385f-4d27-9ddc-756c8fc05c57">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-05:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-06:22" type="ssh/sftp" uuid="b68f4b02-2124-44c4-88bc-7151ab2cefe3">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-06:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
     </targets>
   </component>
 </project>

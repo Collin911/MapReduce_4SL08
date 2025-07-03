@@ -10,11 +10,15 @@ public class Config {
     }
     public static final outType OUT = outType.INFO;
 
+    // Specify the workers' info here and ONLY HERE
     public static List<NodeInfo> loadWorkers() {
         return List.of(
-                new NodeInfo(0, "tp-1d22-01", 10001),
-                new NodeInfo(1, "tp-1d22-02", 10002),
-                new NodeInfo(2, "tp-1d22-03", 10003)
+                new NodeInfo(0, "tp-1d22-01", 10001)
+                ,new NodeInfo(1, "tp-1d22-02", 10002)
+                ,new NodeInfo(2, "tp-1d22-03", 10003)
+                ,new NodeInfo(3, "tp-1d22-04", 10004)
+                ,new NodeInfo(4, "tp-1d22-05", 10005)
+                ,new NodeInfo(5, "tp-1d22-06", 10006)
         );
     }
 
