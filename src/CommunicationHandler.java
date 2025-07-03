@@ -110,7 +110,7 @@ public class CommunicationHandler {
                         out.writeObject(msg);
                         out.flush();
                     }
-                    Config.consoleOutput(Config.outType.DEBUG, msg.type + " sent to " + peerKey);
+                    Config.consoleOutput(Config.outType.DEEP, msg.type + " sent to " + peerKey);
                 } catch (IOException | InterruptedException e) {
                     Config.consoleOutput(Config.outType.ERR, "Connection lost to " + peerKey);
                     e.printStackTrace();

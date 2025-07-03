@@ -60,8 +60,10 @@ public class WorkerNode {
 
     private void askAndWait4ACK(){
         for(NodeInfo peer : peers) {
-            if(peer.id != this.id)
+            if(peer.id != this.id) {
                 commHandler.send(peer, new Message(Message.Type.REQ_ACK, "", id));
+                Config.consoleOutput(Config.outType.DEBUG, "Worker " + id + " has requested " + peer.id +" to ACK.");
+            }
         }
         ACK_Latch = new CountDownLatch(peers.size()-1);
         Config.consoleOutput(Config.outType.INFO, "Worker " + id + " is waiting for peers ACKs.");

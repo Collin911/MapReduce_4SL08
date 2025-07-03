@@ -32,7 +32,7 @@ public class MasterNode {
 
     public void start() throws IOException {
         commHandler.start();
-        Config.consoleOutput(Config.outType.INFO, "Master started. Assigning tasks...");
+        Config.consoleOutput(Config.outType.INFO, "Master started.");
         assignFilesToWorkers("NEW");
         waitForTaskCompletion();
         Config.consoleOutput(Config.outType.INFO, "All tasks completed. Initiating reduction...");
@@ -66,7 +66,7 @@ public class MasterNode {
             String content = Files.readString(Path.of(filePath));
             int totalLength = content.length();
             int partSize = totalLength / numParts;
-
+            Config.consoleOutput(Config.outType.INFO, "Assigning tasks...");
             List<String> parts = new ArrayList<>(numParts);
             for (int i = 0; i < numParts; i++) {
                 int start = i * partSize;
@@ -88,13 +88,13 @@ public class MasterNode {
             case TASK_DONE -> {
                 synchronized (lock) {
                     taskLatch.countDown();
-                    Config.consoleOutput(Config.outType.INFO, "One task marked done. Remaining: " + taskLatch.getCount());
+                    Config.consoleOutput(Config.outType.DEBUG, "One task marked done. Remaining: " + taskLatch.getCount());
                 }
             }
             case LOCAL_MIN_MAX -> {
                 synchronized (lock) {
                     taskLatch.countDown();
-                    Config.consoleOutput(Config.outType.INFO, "Received min/max from worker " + msg.senderId);
+                    Config.consoleOutput(Config.outType.DEBUG, "Received min/max from worker " + msg.senderId);
                 }
                 String[] parts = msg.payload.split(",");
                 localMins.add(Integer.parseInt(parts[0]));
@@ -104,7 +104,7 @@ public class MasterNode {
             case REDISTRIBUTION_DONE -> {
                 synchronized (lock) {
                     taskLatch.countDown();
-                    Config.consoleOutput(Config.outType.INFO, "Redistribution done from worker " + msg.senderId);
+                    Config.consoleOutput(Config.outType.DEBUG, "Redistribution done from worker " + msg.senderId);
                 }
             }
             case FINAL_RESULT -> {

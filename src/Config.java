@@ -3,12 +3,13 @@ import java.util.List;
 public class Config {
     public static final NodeInfo MASTER = new NodeInfo(-1, "137.194.249.148", 12345);
     public enum outType {
+        DEEP,
         DEBUG,
         INFO,
         WARN,
         ERR
     }
-    public static final outType OUT = outType.INFO;
+    public static final outType OUT = outType.DEBUG;
 
     // Specify the workers' info here and ONLY HERE
     // Comment out those not needed
@@ -34,16 +35,20 @@ public class Config {
 
     public static void consoleOutput(outType type, String msg){
         switch (type){
+            case DEEP:
+                if (OUT == outType.DEEP)
+                    System.out.println(msg);
+                break;
             case DEBUG:
-                if (OUT == outType.DEBUG)
+                if (OUT == outType.DEBUG || OUT == outType.DEEP)
                     System.out.println(msg);
                 break;
             case INFO:
-                if (OUT == outType.DEBUG || OUT == outType.INFO)
+                if (OUT == outType.DEBUG || OUT == outType.INFO || OUT == outType.DEEP)
                     System.out.println(msg);
                 break;
             case WARN:
-                if (OUT == outType.DEBUG || OUT == outType.INFO || OUT == outType.WARN)
+                if (OUT == outType.DEBUG || OUT == outType.INFO || OUT == outType.WARN || OUT == outType.DEEP)
                     System.err.println(msg);
                 break;
             case ERR:
