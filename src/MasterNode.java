@@ -157,7 +157,10 @@ public class MasterNode {
 
     private void requestFinalResults(){
         taskLatch = new CountDownLatch(workers.size());
-        broadcast(new Message(Message.Type.SORT_AND_SEND_RESULT, "", -1));
+        broadcast(new Message(Message.Type.SORT_AND_SEND_RESULT,
+                "KEEP_LOCAL", -1));
+        // Tell the slave to send result explicitly or keep result locally
+        // use "EXPLICIT" or "KEEP_LOCAL" as control string
     }
 
     private void gatherFinalResults() {

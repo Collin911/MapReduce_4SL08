@@ -34,7 +34,7 @@ public class WorkerNode {
             case ACK -> rcvACK();
             case START_REDUCE -> performReduction();
             case START_REDISTRIBUTE -> redistribute(msg.payload);
-            case SORT_AND_SEND_RESULT -> sendFinalResult();
+            case SORT_AND_SEND_RESULT -> sendFinalResult(msg.payload);
         }
     }
 
@@ -146,7 +146,7 @@ public class WorkerNode {
         commHandler.send(masterNode, new Message(Message.Type.REDISTRIBUTION_DONE, "", id));
     }
 
-    private void sendFinalResult() {
+    private void sendFinalResult(String ctrl) {
         synchronized (lock) {
             redistributedPairs.sort(Comparator
                     .comparingInt((WordPair wp) -> wp.count)
@@ -161,14 +161,21 @@ public class WorkerNode {
         for (Map.Entry<String, Integer> entry : reduced.entrySet()) {
             result.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }*/
-        StringBuilder result = new StringBuilder();
-        for (WordPair wp : redistributedPairs) {
-            result.append(wp.word).append(": ").append(wp.count).append("\n");
-        }
+        if (Objects.equals(ctrl, "EXPLICIT")){
+            StringBuilder result = new StringBuilder();
+            for (WordPair wp : redistributedPairs) {
+                result.append(wp.word).append(": ").append(wp.count).append("\n");
+            }
 
-        commHandler.send(masterNode,
-                new Message(Message.Type.FINAL_RESULT, id + ":" + result.toString(), id));
+            commHandler.send(masterNode,
+                    new Message(Message.Type.FINAL_RESULT, id + ":" + result.toString(), id));
+        }
+        else if (Objects.equals(ctrl, "KEEP_LOCAL")){
+            commHandler.send(masterNode,
+                    new Message(Message.Type.FINAL_RESULT, id + ": result saved locally", id));
+        }
         Config.consoleOutput(Config.outType.INFO, "Worker " + id + " sent final result.");
+
     }
 
     /*private void debug(String msg) {
