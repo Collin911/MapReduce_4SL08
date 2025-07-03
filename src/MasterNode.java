@@ -1,5 +1,6 @@
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
@@ -32,7 +33,7 @@ public class MasterNode {
     public void start() throws IOException {
         commHandler.start();
         Config.consoleOutput(Config.outType.INFO, "Master started. Assigning tasks...");
-        assignFilesToWorkers();
+        assignFilesToWorkers("NEW");
         waitForTaskCompletion();
         Config.consoleOutput(Config.outType.INFO, "All tasks completed. Initiating reduction...");
         startReduce();
@@ -46,12 +47,34 @@ public class MasterNode {
     }
 
     private void assignFilesToWorkers() throws IOException {
+        // Old version: assign one file to one worker
         taskLatch = new CountDownLatch(files.length); // One count per task
 
         for (int i = 0; i < files.length; i++) {
             NodeInfo worker = workers.get(i % workers.size());
             String content = Files.readString(Paths.get(files[i]));
             commHandler.send(worker, new Message(Message.Type.TASK_ASSIGNMENT, content, -1));
+        }
+    }
+    private void assignFilesToWorkers(String version) throws IOException {
+        // New version: split every file into several parts matching the # of workers
+        // This would allow the master to split task equally and automatically for the workers
+        int numParts = workers.size();
+        taskLatch = new CountDownLatch(files.length * numParts); // One count per task
+        for(String filePath : files)
+        {
+            String content = Files.readString(Path.of(filePath));
+            int totalLength = content.length();
+            int partSize = totalLength / numParts;
+
+            List<String> parts = new ArrayList<>(numParts);
+            for (int i = 0; i < numParts; i++) {
+                int start = i * partSize;
+                int end = (i == numParts - 1) ? totalLength : (i + 1) * partSize;
+                NodeInfo worker = workers.get(i);
+                String task = content.substring(start, end);
+                commHandler.send(worker, new Message(Message.Type.TASK_ASSIGNMENT, task, -1));
+            }
         }
     }
 
