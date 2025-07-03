@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="9 Workers" type="CompoundRunConfigurationType">
+    <toRun name="WorkerNode0R" type="Application" />
+    <toRun name="WorkerNode1R" type="Application" />
+    <toRun name="WorkerNode2R" type="Application" />
+    <toRun name="WorkerNode3R" type="Application" />
+    <toRun name="WorkerNode4R" type="Application" />
+    <toRun name="WorkerNode5R" type="Application" />
+    <toRun name="WorkerNode6R" type="Application" />
+    <toRun name="WorkerNode7R" type="Application" />
+    <toRun name="WorkerNode8R" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>

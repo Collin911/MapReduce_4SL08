@@ -15,7 +15,7 @@
           </config>
         </ContributedStateBase>
       </target>
-      <target name="sxia-24@tp-1d22-02:23" type="ssh/sftp" uuid="d01e165b-8428-461d-b83c-6711cc7b6c94">
+      <target name="sxia-24@tp-1d22-02:22" type="ssh/sftp" uuid="d01e165b-8428-461d-b83c-6711cc7b6c94">
         <config>
           <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
           <option name="serverName" value="sxia-24@tp-1d22-02:22 password" />
@@ -71,6 +71,58 @@
         <config>
           <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
           <option name="serverName" value="sxia-24@tp-1d22-06:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-08:22" type="ssh/sftp" uuid="725e3367-e115-453b-bd3d-a9450a6d0233">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-08:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-09:22" type="ssh/sftp" uuid="c478762d-24c4-451c-8f56-c1ee0e1edd99">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-09:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-10:22" type="ssh/sftp" uuid="32187856-1ef1-4abe-89af-3f41d5cc451c">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-10:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr" />
+            <option name="javaVersionString" value="17.0.15" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="sxia-24@tp-1d22-11:22" type="ssh/sftp" uuid="f67e8257-ed8e-49a6-9de0-0db8b44ce400">
+        <config>
+          <option name="projectRootOnTarget" value="/cal/exterieurs/sxia-24/WordCountDistributed" />
+          <option name="serverName" value="sxia-24@tp-1d22-11:22 password" />
           <option name="useRsync" value="true" />
         </config>
         <ContributedStateBase type="JavaLanguageRuntime">
