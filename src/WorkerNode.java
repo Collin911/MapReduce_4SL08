@@ -108,11 +108,13 @@ public class WorkerNode {
     }
 
     private void performReduction() {
+        /*
         try{
             Thread.sleep(500); // wait for the on-air messages
         } catch (InterruptedException e) {
             Config.consoleOutput(Config.outType.WARN, "Worker " + id + " interrupted.");
         }
+        */
         for (WordPair wp : receivedPairs) {
             localCounts.merge(wp.word, wp.count, Integer::sum);
         }
