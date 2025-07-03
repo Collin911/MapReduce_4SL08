@@ -13,7 +13,6 @@ public class MasterNode {
     private final Set<String> minMaxReports;
     private final List<Integer> localMins;
     private final List<Integer> localMaxs;
-    private int redisDoneCount = 0;
     private CountDownLatch taskLatch;
     private final Object lock = new Object(); // for printing/debug sync
     private final long startTime;
@@ -46,7 +45,7 @@ public class MasterNode {
         gatherFinalResults();
     }
 
-    private void assignFilesToWorkers() throws IOException {
+    /*private void assignFilesToWorkers() throws IOException {
         // Old version: assign one file to one worker
         taskLatch = new CountDownLatch(files.length); // One count per task
 
@@ -55,7 +54,8 @@ public class MasterNode {
             String content = Files.readString(Paths.get(files[i]));
             commHandler.send(worker, new Message(Message.Type.TASK_ASSIGNMENT, content, -1));
         }
-    }
+    }*/
+
     private void assignFilesToWorkers(String version) throws IOException {
         // New version: split every file into several parts matching the # of workers
         // This would allow the master to split task equally and automatically for the workers
@@ -67,7 +67,6 @@ public class MasterNode {
             int totalLength = content.length();
             int partSize = totalLength / numParts;
             Config.consoleOutput(Config.outType.INFO, "Assigning tasks...");
-            List<String> parts = new ArrayList<>(numParts);
             for (int i = 0; i < numParts; i++) {
                 int start = i * partSize;
                 int end = (i == numParts - 1) ? totalLength : (i + 1) * partSize;
@@ -217,14 +216,14 @@ public class MasterNode {
         }
     }
 
-    private void sleep(int ms) {
+    /*private void sleep(int ms) {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException ignored) {
         }
     }
 
-    /*private void debug(String msg) {
+    private void debug(String msg) {
         if (Config.DEBUG) {
             System.out.println("[DEBUG] " + msg);
         }

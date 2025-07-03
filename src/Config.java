@@ -16,7 +16,7 @@ public class Config {
     public static List<NodeInfo> loadWorkers() {
         return List.of(
                 new NodeInfo(0, "tp-1d22-01", 10001)
-                ,new NodeInfo(1, "tp-1d22-02", 10002)
+                //,new NodeInfo(1, "tp-1d22-02", 10002)
                 //,new NodeInfo(2, "tp-1d22-03", 10003)
                 //,new NodeInfo(3, "tp-1d22-04", 10004)
                 //,new NodeInfo(4, "tp-1d22-05", 10005)
@@ -27,10 +27,6 @@ public class Config {
                 //,new NodeInfo(9, "tp-1d22-11", 10010)
 
         );
-    }
-
-    public static int getNumWorkers() {
-        return loadWorkers().size();
     }
 
     public static void consoleOutput(outType type, String msg){
