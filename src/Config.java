@@ -1,7 +1,8 @@
 import java.util.List;
 
 public class Config {
-    public static final NodeInfo MASTER = new NodeInfo(-1, "137.194.249.148", 12345);
+    //public static final NodeInfo MASTER = new NodeInfo(-1, "137.194.125.65", 12345);
+    public static final NodeInfo MASTER = new NodeInfo(-1, "localhost", 12345);
     public enum outType {
         DEEP,
         DEBUG,
@@ -10,12 +11,15 @@ public class Config {
         ERR
     }
     public static final outType OUT = outType.DEBUG;
+    public static final String finalResultOutput = "KEEP_LOCAL";
+    // Tell the slave to send result explicitly or keep result locally
+    // use "EXPLICIT" or "KEEP_LOCAL" as control string
 
     // Specify the workers' info here and ONLY HERE
     // Comment out those not needed
     public static List<NodeInfo> loadWorkers() {
         return List.of(
-                new NodeInfo(0, "tp-1d22-01", 10001)
+                new NodeInfo(0, "localhost", 10001)
                 //,new NodeInfo(1, "tp-1d22-02", 10002)
                 //,new NodeInfo(2, "tp-1d22-03", 10003)
                 //,new NodeInfo(3, "tp-1d22-04", 10004)
